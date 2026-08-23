@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// lib/vue/endroit_detail.dart - Page de détails avec SliverAppBar & Carte
+// lib/vue/endroit_detail.dart - Écran de Détails avec SliverAppBar & Maps
 // ═══════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,12 +7,18 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../modele/endroit.dart';
 import '../providers/endroits_provider.dart';
 
+/// Écran détaillant un endroit spécifique :
+/// - En-tête SliverAppBar avec Hero transition de la photo
+/// - Coordonnées géographiques et adresse textuelle
+/// - Carte Google Maps grand format interactive
+/// - Option de suppression sécurisée avec dialogue de confirmation
 class EndroitDetail extends ConsumerWidget {
   const EndroitDetail({super.key, required this.endroit});
 
+  /// L'objet [Endroit] dont on affiche les détails
   final Endroit endroit;
 
-  // Formatage de la date d'enregistrement
+  /// Utilitaire de formatage en français de la date de création
   String _formaterDate(DateTime date) {
     final mois = [
       'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -29,7 +35,7 @@ class EndroitDetail extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // AppBar rétractable avec image en Hero
+          // ─── SliverAppBar avec Image d'en-tête et Hero Animation ───
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
@@ -51,6 +57,7 @@ class EndroitDetail extends ConsumerWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
+                  // Hero Widget lié à la miniature de la liste
                   Hero(
                     tag: 'image_${endroit.id}',
                     child: Image.file(
@@ -58,7 +65,7 @@ class EndroitDetail extends ConsumerWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-                  // Dégradé pour lisibilité du titre
+                  // Dégradé sombre pour garantir un contraste parfait du titre blanc
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -76,6 +83,7 @@ class EndroitDetail extends ConsumerWidget {
               ),
             ),
             actions: [
+              // Bouton de suppression avec dialogue de confirmation
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded),
                 tooltip: "Supprimer l'endroit",
@@ -100,8 +108,8 @@ class EndroitDetail extends ConsumerWidget {
                             ref
                                 .read(endroitsProvider.notifier)
                                 .supprimerEndroit(endroit.id);
-                            Navigator.pop(ctx); // Ferme la boîte de dialogue
-                            Navigator.pop(context); // Retourne à la liste
+                            Navigator.pop(ctx); // Ferme le dialogue
+                            Navigator.pop(context); // Revient à l'écran d'accueil
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('${endroit.nom} a été supprimé.'),
@@ -118,14 +126,14 @@ class EndroitDetail extends ConsumerWidget {
             ],
           ),
 
-          // Contenu des détails
+          // ─── Corps des Informations & Carte ───
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Carte d'informations principales
+                  // Carte synthétique des métadonnées
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -221,7 +229,7 @@ class EndroitDetail extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Section Carte Google Maps
+                  // Section Carte Google Maps intégrée
                   if (endroit.aLocalisation) ...[
                     Row(
                       children: [
@@ -266,6 +274,7 @@ class EndroitDetail extends ConsumerWidget {
                       ),
                     ),
                   ] else ...[
+                    // Message si aucune géolocalisation n'avait été attachée
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(

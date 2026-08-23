@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// lib/vue/ajout_endroit.dart - Ajout d'un endroit avec persistance SQLite
+// lib/vue/ajout_endroit.dart - Formulaire d'ajout avec SQLite & GPS
 // ═══════════════════════════════════════════════════════════════════
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -8,6 +8,8 @@ import '../providers/endroits_provider.dart';
 import '../widgets/image_prise.dart';
 import '../widgets/localisation_prise.dart';
 
+/// Écran permettant à l'utilisateur de créer un nouvel endroit favori
+/// en saisissant un nom, en prenant/sélectionnant une photo et en obtenant sa géolocalisation.
 class AjoutEndroit extends ConsumerStatefulWidget {
   const AjoutEndroit({super.key});
 
@@ -16,8 +18,13 @@ class AjoutEndroit extends ConsumerStatefulWidget {
 }
 
 class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
+  // Clé globale pour la validation du formulaire
   final _formKey = GlobalKey<FormState>();
+
+  // Contrôleur pour le champ texte du nom
   final _nomController = TextEditingController();
+
+  // Variables d'état local
   File? _imageSelectionnee;
   double? _latitude;
   double? _longitude;
@@ -30,10 +37,12 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
     super.dispose();
   }
 
+  /// Callback exécuté lors de la sélection d'une photo dans [ImagePrise]
   void _surPhotoSelectionnee(File image) {
     setState(() => _imageSelectionnee = image);
   }
 
+  /// Callback exécuté lors de l'obtention des coordonnées GPS dans [LocalisationPrise]
   void _surLocalisationSelectionnee(
     double lat,
     double lng,
@@ -46,10 +55,12 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
     });
   }
 
-  // Validation et persistance SQLite
+  /// Valide les champs et enregistre le lieu en base de données SQLite
   Future<void> _enregistrerEndroit() async {
+    // 1. Validation du champ texte
     if (!_formKey.currentState!.validate()) return;
 
+    // 2. Vérification de la présence d'une photo
     if (_imageSelectionnee == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -69,7 +80,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
     setState(() => _enCoursEnregistrement = true);
 
     try {
-      // Insertion SQLite + copie permanente de la photo
+      // 3. Appel du provider pour copie de l'image et insertion SQLite
       await ref.read(endroitsProvider.notifier).ajouterEndroit(
             nom: _nomController.text.trim(),
             imageTemporaire: _imageSelectionnee!,
@@ -80,6 +91,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
 
       if (!mounted) return;
 
+      // 4. Feedback utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -93,6 +105,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
         ),
       );
 
+      // 5. Fermeture de l'écran d'ajout
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
@@ -111,8 +124,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       appBar: AppBar(
@@ -125,7 +137,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Section 1 : Informations
+              // ─── Section 1 : Intitulé du lieu ───
               _SectionTitre(
                 icon: Icons.title_rounded,
                 titre: "Nom de l'endroit",
@@ -151,7 +163,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
               ),
               const SizedBox(height: 24),
 
-              // Section 2 : Photo
+              // ─── Section 2 : Sélection de Photo ───
               _SectionTitre(
                 icon: Icons.photo_camera_rounded,
                 titre: 'Photo du lieu',
@@ -161,7 +173,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
               ImagePrise(onPhotoSelectionnee: _surPhotoSelectionnee),
               const SizedBox(height: 24),
 
-              // Section 3 : Localisation GPS
+              // ─── Section 3 : Localisation GPS & Carte ───
               _SectionTitre(
                 icon: Icons.map_rounded,
                 titre: 'Localisation & Adresse',
@@ -173,7 +185,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
               ),
               const SizedBox(height: 32),
 
-              // Bouton Enregistrer
+              // ─── Bouton de Validation & Sauvegarde ───
               SizedBox(
                 height: 54,
                 child: ElevatedButton(
@@ -206,6 +218,7 @@ class _AjoutEndroitState extends ConsumerState<AjoutEndroit> {
   }
 }
 
+/// Widget réutilisable pour afficher un titre de section stylisé avec icône
 class _SectionTitre extends StatelessWidget {
   const _SectionTitre({
     required this.icon,

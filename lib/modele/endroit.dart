@@ -1,13 +1,17 @@
 // ═══════════════════════════════════════════════════════════════════
-// lib/modele/endroit.dart - Modèle Endroit avec sérialisation SQLite
+// lib/modele/endroit.dart - Modèle de données Endroit & Sérialisation SQLite
 // ═══════════════════════════════════════════════════════════════════
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 
-// Constante globale pour générer des UUID uniques
+/// Instance globale pour la génération d'identifiants uniques universels (UUID v4)
 const uuid = Uuid();
 
+/// Modèle métier représentant un lieu ou un endroit favori enregistré par l'utilisateur.
 class Endroit {
+  /// Constructeur principal.
+  /// Si l'identifiant n'est pas fourni (nouveau lieu), un UUID v4 est généré.
+  /// Si la date de création n'est pas fournie, la date actuelle est utilisée.
   Endroit({
     String? id,
     required this.nom,
@@ -19,31 +23,48 @@ class Endroit {
   })  : id = id ?? uuid.v4(),
         dateCreation = dateCreation ?? DateTime.now();
 
-  final String id;              // Identifiant unique (UUID ou DB)
-  final String nom;             // Nom du lieu
-  final File image;             // Fichier photo stocké localement
-  final double? latitude;       // Latitude GPS (optionnelle)
-  final double? longitude;      // Longitude GPS (optionnelle)
-  final String? adresse;        // Adresse textuelle formatée
-  final DateTime dateCreation;  // Date d'enregistrement
+  /// Identifiant unique (Clé primaire SQLite)
+  final String id;
 
-  // Indique si la géolocalisation GPS est disponible
+  /// Nom ou intitulé du lieu
+  final String nom;
+
+  /// Référence au fichier photo stocké de façon pérenne sur l'appareil
+  final File image;
+
+  /// Coordonnée GPS : Latitude (optionnelle)
+  final double? latitude;
+
+  /// Coordonnée GPS : Longitude (optionnelle)
+  final double? longitude;
+
+  /// Adresse postale textuelle obtenue par géocodage inverse
+  final String? adresse;
+
+  /// Date et heure de création de l'enregistrement
+  final DateTime dateCreation;
+
+  /// Propriété calculée indiquant si des coordonnées GPS valides sont associées
   bool get aLocalisation => latitude != null && longitude != null;
 
-  // Convertit l'objet Endroit en Map pour SQLite
+  /// ─────────────────────────────────────────────────────────────────
+  /// SÉRIALISATION SQLITE
+  /// ─────────────────────────────────────────────────────────────────
+
+  /// Convertit l'instance [Endroit] en une Map clé-valeur pour l'insertion SQLite.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'nom': nom,
-      'image_path': image.path,
+      'image_path': image.path, // Chemin d'accès au fichier sur le disque
       'latitude': latitude,
       'longitude': longitude,
       'adresse': adresse,
-      'date_creation': dateCreation.toIso8601String(),
+      'date_creation': dateCreation.toIso8601String(), // Format standard ISO-8601
     };
   }
 
-  // Construit un objet Endroit à partir d'une Map SQLite
+  /// Reconstruit une instance [Endroit] à partir d'une ligne extraite de la table SQLite.
   factory Endroit.fromMap(Map<String, dynamic> map) {
     return Endroit(
       id: map['id'] as String,
@@ -58,7 +79,7 @@ class Endroit {
     );
   }
 
-  // Cloner et modifier un objet Endroit
+  /// Permet de dupliquer un objet [Endroit] en modifiant certains de ses attributs.
   Endroit copyWith({
     String? id,
     String? nom,

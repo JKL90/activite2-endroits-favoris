@@ -5,9 +5,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Widget interactif permettant à l'utilisateur de prendre une photo via la caméra
+/// ou de la sélectionner depuis la galerie de l'appareil.
 class ImagePrise extends StatefulWidget {
   const ImagePrise({super.key, required this.onPhotoSelectionnee});
 
+  /// Callback transmettant le fichier image sélectionné au widget parent
   final void Function(File image) onPhotoSelectionnee;
 
   @override
@@ -15,17 +18,19 @@ class ImagePrise extends StatefulWidget {
 }
 
 class _ImagePriseState extends State<ImagePrise> {
+  // Fichier photo sélectionné en local
   File? _photoSelectionnee;
 
-  // Sélection de l'image (Appareil photo ou Galerie)
+  /// Déclenche le sélecteur d'image selon la source demandée (Caméra ou Galerie)
   Future<void> _choisirImage(ImageSource source) async {
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: source,
-      maxWidth: 1024,
-      imageQuality: 85,
+      maxWidth: 1024, // Limite la largeur pour optimiser la mémoire et la taille du fichier
+      imageQuality: 85, // Compression raisonnable sans perte visible de qualité
     );
 
+    // Si l'utilisateur annule la sélection
     if (photo == null) return;
 
     final imageFile = File(photo.path);
@@ -33,10 +38,11 @@ class _ImagePriseState extends State<ImagePrise> {
       _photoSelectionnee = imageFile;
     });
 
+    // Transmission au parent (AjoutEndroit)
     widget.onPhotoSelectionnee(imageFile);
   }
 
-  // Affiche une boîte de dialogue / BottomSheet élégante pour choisir la source
+  /// Affiche une feuille modale (ModalBottomSheet) pour laisser le choix entre Caméra et Galerie
   void _afficherMenuSelection() {
     showModalBottomSheet(
       context: context,
@@ -49,6 +55,7 @@ class _ImagePriseState extends State<ImagePrise> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Poignée visuelle de glissement
               Container(
                 width: 40,
                 height: 4,
@@ -66,6 +73,7 @@ class _ImagePriseState extends State<ImagePrise> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  // Option 1 : Appareil photo
                   _OptionSource(
                     icon: Icons.camera_alt_rounded,
                     label: 'Caméra',
@@ -75,6 +83,7 @@ class _ImagePriseState extends State<ImagePrise> {
                       _choisirImage(ImageSource.camera);
                     },
                   ),
+                  // Option 2 : Galerie d'images
                   _OptionSource(
                     icon: Icons.photo_library_rounded,
                     label: 'Galerie',
@@ -99,6 +108,7 @@ class _ImagePriseState extends State<ImagePrise> {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
+    // ─── Cas 1 : Aucune photo sélectionnée ───
     if (_photoSelectionnee == null) {
       return Container(
         height: 180,
@@ -152,7 +162,7 @@ class _ImagePriseState extends State<ImagePrise> {
       );
     }
 
-    // Photo sélectionnée avec aperçu moderne & bouton de remplacement
+    // ─── Cas 2 : Photo sélectionnée avec bouton de modification ───
     return Stack(
       children: [
         ClipRRect(
@@ -186,6 +196,7 @@ class _ImagePriseState extends State<ImagePrise> {
   }
 }
 
+/// Bouton d'option avec icône ronde et libellé pour la sélection de source
 class _OptionSource extends StatelessWidget {
   const _OptionSource({
     required this.icon,

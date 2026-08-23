@@ -1,17 +1,20 @@
 // ═══════════════════════════════════════════════════════════════════
-// lib/widgets/localisation_prise.dart - Sélecteur GPS & Géocodage moderne
+// lib/widgets/localisation_prise.dart - Détection GPS & Mini-carte Google Maps
 // ═══════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+/// Widget interactif permettant à l'utilisateur de capturer sa position GPS actuelle,
+/// d'effectuer le géocodage inverse (adresse postale) et d'afficher un aperçu sur Google Maps.
 class LocalisationPrise extends StatefulWidget {
   const LocalisationPrise({
     super.key,
     required this.onLocalisationSelectionnee,
   });
 
+  /// Callback transmettant la latitude, la longitude et l'adresse formatée au parent
   final void Function(double lat, double lng, String adresse)
       onLocalisationSelectionnee;
 
@@ -25,10 +28,11 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
   String? _adresse;
   bool _chargement = false;
 
-  // Récupération automatique de la position GPS
+  /// Déclenche la demande de permission et la localisation GPS
   Future<void> _obtenirLocalisation() async {
     setState(() => _chargement = true);
 
+    // 1. Vérification et demande des permissions système
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -40,7 +44,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Permission de localisation refusée.'),
+            content: Text('Permission de localisation refusée par l\'utilisateur.'),
           ),
         );
       }
@@ -48,6 +52,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
     }
 
     try {
+      // 2. Récupération des coordonnées GPS (avec timeout)
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
@@ -58,7 +63,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
       _latitude = position.latitude;
       _longitude = position.longitude;
 
-      // Géocodage inverse : conversion coordonnées -> adresse lisible
+      // 3. Géocodage inverse : conversion coordonnées -> adresse textuelle
       try {
         final placemarks = await placemarkFromCoordinates(
           _latitude!,
@@ -78,12 +83,14 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
           _adresse = '${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}';
         }
       } catch (_) {
+        // En cas d'indisponibilité du service de géocodage
         _adresse = '${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}';
       }
 
+      // 4. Transmission des données au parent
       widget.onLocalisationSelectionnee(_latitude!, _longitude!, _adresse!);
     } catch (_) {
-      // Coordonnées par défaut en cas d'impossibilité / émulateur
+      // Position par défaut de secours (Mountain View, CA) en cas d'impossibilité ou d'émulateur
       _latitude = 37.4220;
       _longitude = -122.0840;
       _adresse = '1600 Amphitheatre Pkwy, Mountain View, CA, États-Unis';
@@ -100,6 +107,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
+    // ─── Cas 1 : Recherche GPS en cours ───
     if (_chargement) {
       return Container(
         height: 160,
@@ -130,6 +138,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
       );
     }
 
+    // ─── Cas 2 : Coordonnées obtenues (Mini-carte + Adresse) ───
     if (_latitude != null && _longitude != null) {
       return Container(
         decoration: BoxDecoration(
@@ -141,6 +150,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Mini-carte Google Maps avec bouton d'actualisation
               SizedBox(
                 height: 160,
                 child: Stack(
@@ -171,6 +181,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
                   ],
                 ),
               ),
+              // Bandeau affichant l'adresse géocodée
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 color: theme.colorScheme.surface,
@@ -198,7 +209,7 @@ class _LocalisationPriseState extends State<LocalisationPrise> {
       );
     }
 
-    // Bouton moderne d'obtention de localisation
+    // ─── Cas 3 : Aucune position capturée ───
     return Container(
       height: 110,
       decoration: BoxDecoration(

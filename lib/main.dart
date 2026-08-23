@@ -6,38 +6,46 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'vue/endroits_interface.dart';
 
+/// Fonction principale de démarrage de l'application Flutter.
 void main() {
+  // S'assure que les liaisons du framework Flutter sont bien initialisées
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Rendre la barre de statut transparente et harmonieuse
+  // Configuration de la barre d'état système pour une intégration transparente et moderne
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarColor: Colors.transparent, // Fond transparent
+      statusBarIconBrightness: Brightness.dark, // Icônes sombres par défaut
     ),
   );
 
   runApp(
+    // ProviderScope : Conteneur racine obligatoire pour Riverpod.
+    // Il stocke et gère l'ensemble des états de l'application.
     const ProviderScope(
       child: MonApplication(),
     ),
   );
 }
 
+/// Widget racine configurant le MaterialApp, le design Material 3,
+/// les thèmes clair et sombre, ainsi que l'écran d'accueil.
 class MonApplication extends StatelessWidget {
   const MonApplication({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Palette moderne Teal émeraude & Indigo
+    // Couleur primaire élégante : Teal émeraude profond
     const primaryColor = Color(0xFF00897B);
 
     return MaterialApp(
       title: 'Endroits Favoris',
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false, // Masquer la bannière DEBUG
+      themeMode: ThemeMode.system, // Bascule automatique clair/sombre selon le système
       
-      // Thème Clair Moderne (Material 3)
+      // ═══════════════════════════════════════════════════════════════
+      // Configuration du Thème Clair (Material 3)
+      // ═══════════════════════════════════════════════════════════════
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -107,7 +115,9 @@ class MonApplication extends StatelessWidget {
         ),
       ),
 
-      // Thème Sombre Moderne
+      // ═══════════════════════════════════════════════════════════════
+      // Configuration du Thème Sombre (Material 3)
+      // ═══════════════════════════════════════════════════════════════
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -176,6 +186,7 @@ class MonApplication extends StatelessWidget {
           ),
         ),
       ),
+      // Écran d'accueil de l'application
       home: const EndroitsInterface(),
     );
   }

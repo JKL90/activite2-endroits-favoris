@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// lib/vue/endroits_interface.dart - Interface principale avec recherche & SQLite
+// lib/vue/endroits_interface.dart - Interface principale & Liste des Favoris
 // ═══════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +7,8 @@ import '../providers/endroits_provider.dart';
 import '../widgets/endroits_list.dart';
 import 'ajout_endroit.dart';
 
+/// Écran principal de l'application affichant la liste des lieux favoris
+/// avec support de la recherche instantanée, de la bascule vue liste/grille et du pull-to-refresh.
 class EndroitsInterface extends ConsumerStatefulWidget {
   const EndroitsInterface({super.key});
 
@@ -15,8 +17,13 @@ class EndroitsInterface extends ConsumerStatefulWidget {
 }
 
 class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
+  // Indicateur d'affichage en grille (true) ou en liste (false)
   bool _estModeGrille = false;
+
+  // Indicateur d'activation du mode recherche dans l'AppBar
   bool _modeRecherche = false;
+
+  // Contrôleur du champ de saisie de recherche
   final _searchController = TextEditingController();
 
   @override
@@ -30,12 +37,14 @@ class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
+    // Écoute des providers Riverpod
     final tousLesEndroits = ref.watch(endroitsProvider);
     final endroitsAffiches = ref.watch(endroitsFiltresProvider);
     final queryRecherche = ref.watch(rechercheQueryProvider);
 
     return Scaffold(
       appBar: AppBar(
+        // Titre dynamique : soit le champ de recherche textuel, soit le titre "Mes Endroits" avec badge
         title: _modeRecherche
             ? TextField(
                 controller: _searchController,
@@ -82,7 +91,7 @@ class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
                 ],
               ),
         actions: [
-          // Bouton Recherche
+          // Bouton pour ouvrir / fermer la recherche
           IconButton(
             icon: Icon(
               _modeRecherche ? Icons.close_rounded : Icons.search_rounded,
@@ -100,7 +109,7 @@ class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
               });
             },
           ),
-          // Bouton Bascule Grille / Liste
+          // Bouton de bascule Vue Grille / Vue Liste
           IconButton(
             icon: Icon(
               _estModeGrille
@@ -116,11 +125,12 @@ class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
           ),
         ],
       ),
+      // Pull-to-Refresh : Permet de rafraîchir manuellement la liste depuis SQLite
       body: RefreshIndicator(
         onRefresh: () => ref.read(endroitsProvider.notifier).recharger(),
         child: Column(
           children: [
-            // Indicateur de filtre si recherche active
+            // Bandeau d'information si un filtre de recherche est actif
             if (queryRecherche.isNotEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -159,6 +169,7 @@ class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
                   ],
                 ),
               ),
+            // Affichage de la liste ou de la grille
             Expanded(
               child: EndroitsList(
                 endroits: endroitsAffiches,
@@ -168,6 +179,7 @@ class _EndroitsInterfaceState extends ConsumerState<EndroitsInterface> {
           ],
         ),
       ),
+      // Bouton d'action flottant moderne étendu pour ajouter un lieu
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).push(

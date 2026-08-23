@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// lib/widgets/endroits_list.dart - Liste & Grille d'endroits moderne
+// lib/widgets/endroits_list.dart - Affichage Liste et Grille des Endroits
 // ═══════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +8,8 @@ import '../providers/endroits_provider.dart';
 import '../vue/ajout_endroit.dart';
 import '../vue/endroit_detail.dart';
 
+/// Widget réutilisable présentant la collection des endroits
+/// sous forme de liste défilante ou de grille à 2 colonnes.
 class EndroitsList extends ConsumerWidget {
   const EndroitsList({
     super.key,
@@ -15,7 +17,10 @@ class EndroitsList extends ConsumerWidget {
     this.estModeGrille = false,
   });
 
+  /// Liste des endroits à afficher (peut être filtrée par la recherche)
   final List<Endroit> endroits;
+
+  /// Mode d'affichage actif : true pour grille, false pour liste
   final bool estModeGrille;
 
   @override
@@ -23,7 +28,7 @@ class EndroitsList extends ConsumerWidget {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
-    // État vide stylisé
+    // ─── Vue État Vide (Aucun endroit enregistré ou aucun résultat) ───
     if (endroits.isEmpty) {
       return Center(
         child: SingleChildScrollView(
@@ -75,7 +80,7 @@ class EndroitsList extends ConsumerWidget {
       );
     }
 
-    // Mode Grille (2 colonnes)
+    // ─── Vue en Grille (2 colonnes) ───
     if (estModeGrille) {
       return GridView.builder(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
@@ -93,7 +98,7 @@ class EndroitsList extends ConsumerWidget {
       );
     }
 
-    // Mode Liste (Cartes Material 3)
+    // ─── Vue en Liste (Cartes avec Swipe-to-Delete) ───
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
       itemCount: endroits.length,
@@ -103,6 +108,7 @@ class EndroitsList extends ConsumerWidget {
         return Dismissible(
           key: Key(endroit.id),
           direction: DismissDirection.endToStart,
+          // Arrière-plan rouge lors du glissement pour supprimer
           background: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -128,6 +134,7 @@ class EndroitsList extends ConsumerWidget {
             ),
           ),
           onDismissed: (_) {
+            // Suppression en base SQLite et de l'état
             ref.read(endroitsProvider.notifier).supprimerEndroit(endroit.id);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -143,7 +150,7 @@ class EndroitsList extends ConsumerWidget {
   }
 }
 
-// Carte pour la vue Liste
+/// Carte individuelle pour le mode d'affichage en Liste
 class _EndroitListCard extends StatelessWidget {
   const _EndroitListCard({required this.endroit});
 
@@ -159,6 +166,7 @@ class _EndroitListCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
+          // Navigation vers l'écran de détails
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => EndroitDetail(endroit: endroit),
@@ -169,7 +177,7 @@ class _EndroitListCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Photo avec Hero animation
+              // Photo de l'endroit avec transition Hero
               Hero(
                 tag: 'image_${endroit.id}',
                 child: ClipRRect(
@@ -184,7 +192,7 @@ class _EndroitListCard extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // Informations
+              // Informations textuelles & badges
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,7 +278,7 @@ class _EndroitListCard extends StatelessWidget {
   }
 }
 
-// Carte pour la vue Grille
+/// Carte individuelle pour le mode d'affichage en Grille
 class _EndroitGridCard extends StatelessWidget {
   const _EndroitGridCard({required this.endroit});
 
@@ -294,7 +302,7 @@ class _EndroitGridCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image avec badge GPS en haut à droite
+            // Vignette immersive avec badge GPS en superposition
             Expanded(
               child: Stack(
                 fit: StackFit.expand,
@@ -326,7 +334,7 @@ class _EndroitGridCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Texte nom et adresse
+            // Nom et adresse sous l'image
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
