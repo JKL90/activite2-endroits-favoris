@@ -1,0 +1,52 @@
+================================================================================
+          ACTIVITÉ 2 : APPLICATION FLUTTER "MES ENDROITS FAVORIS"
+                    PERSISTANCE SQLITE & DESIGN MATERIAL 3
+================================================================================
+
+📌 LIEN DU DÉPÔT GITHUB OFFICIEL DU PROJET :
+👉 https://github.com/JKL90/activite2-endroits-favoris
+
+--------------------------------------------------------------------------------
+👤 AUTEUR & INFORMATIONS ACADÉMIQUES
+--------------------------------------------------------------------------------
+- Compte GitHub : JKL90
+- Projet : Activité 2 - Application de gestion des Endroits Préférés
+- Technologies : Flutter (Dart) ^3.9.2, SQLite (sqflite ^2.4.2), Riverpod (^3.3.1)
+- Google Maps SDK & Géolocalisation GPS (geolocator, geocoding)
+
+--------------------------------------------------------------------------------
+🌟 PRINCIPALES RÉALISATIONS & FONCTIONNALITÉS
+--------------------------------------------------------------------------------
+
+1. PERSISTANCE SQLITE LOCALE & STOCKAGE PÉRENNE :
+   - Service Singleton SQLite dans `lib/services/db_helper.dart` gérant la base `endroits_favoris.db` et la table `endroits`.
+   - Copie physique permanente de chaque photo dans le dossier sécurisé de l'application (`getApplicationDocumentsDirectory()`), empêchant toute perte au redémarrage.
+   - Opérations CRUD complètes et suppression propre (base + fichier sur disque).
+
+2. GESTION D'ÉTAT MODERNE AVEC RIVERPOD (v2/v3) :
+   - `EndroitsNotifier` qui charge automatiquement les lieux sauvegardés au lancement.
+   - `endroitsFiltresProvider` pour le filtrage instantané en temps réel par nom ou ville.
+
+3. INTERFACE UTILISATEUR & EXPÉRIENCE MODERNE (MATERIAL 3) :
+   - Design Material 3 soigné avec palette Teal Émeraude (#00897B).
+   - Thèmes Clair et Sombre pris en charge automatiquement.
+   - Barre de recherche dynamique instantanée.
+   - Bascule d'affichage entre Vue Liste et Vue Grille (2 colonnes).
+   - Prise de photo double option : Appareil photo 📸 OU Galerie d'images 🖼️.
+   - Détection GPS haute précision avec géocodage inverse automatique.
+   - Écran de détails moderne avec SliverAppBar rétractable, fiche technique et carte Google Maps intégrée.
+   - Gestes tactiles : Glisser pour supprimer (Swipe-to-delete) et Pull-to-refresh.
+
+4. QUALITÉ DU CODE :
+   - 0 erreur, 0 avertissement (`flutter analyze`).
+   - Commentaires pédagogiques et explicatifs complets en français sur 100% des fichiers de code dans `lib/`.
+
+--------------------------------------------------------------------------------
+🚀 COMMANDES D'INSTALLATION & EXÉCUTION
+--------------------------------------------------------------------------------
+1. Récupérer les dépendances :
+   flutter pub get
+
+2. Lancer l'application :
+   flutter run --android-skip-build-dependency-validation
+================================================================================
